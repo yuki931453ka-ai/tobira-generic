@@ -11,6 +11,11 @@ const USERS = {
     name: '坂野 広平',
     passwordChanged: false,
   },
+  'admin': {
+    password: 'k93145313',
+    name: 'Admin',
+    passwordChanged: true,
+  },
 };
 
 // 簡易トークン管理（本番ではJWT等を使用）
