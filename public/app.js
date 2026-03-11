@@ -92,7 +92,8 @@ $('#logout-btn').addEventListener('click', () => {
 function enterMainChat() {
   showSection('main');
   $('#display-name').textContent = userName;
-  // AIから最初のメッセージを取得
+  // AIに初回メッセージを送って会話を開始
+  chatHistory.push({ role: 'user', content: `こんにちは。私の名前は${userName}です。応募書類の作成をお願いします。` });
   sendToAI();
 }
 
@@ -126,6 +127,10 @@ $('#chat-input').addEventListener('keydown', (e) => {
 });
 
 async function sendToAI() {
+  // ウェルカムバナーを非表示
+  const banner = $('#welcome-banner');
+  if (banner) banner.classList.add('hidden');
+
   const typing = $('#typing-indicator');
   const sendBtn = $('#send-btn');
   typing.classList.remove('hidden');

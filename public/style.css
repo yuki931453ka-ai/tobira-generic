@@ -168,6 +168,63 @@ body {
   border-left: 3px solid var(--accent);
 }
 
+/* Welcome banner */
+.welcome-banner {
+  text-align: center;
+  padding: 40px 24px 32px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.welcome-icon { margin-bottom: 12px; }
+
+.welcome-banner h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.welcome-banner p {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.welcome-steps {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, var(--primary), var(--teal));
+  color: white;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 /* Floating label inputs */
 .input-group {
   position: relative;
