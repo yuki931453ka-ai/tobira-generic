@@ -181,11 +181,17 @@ async function sendToAI() {
     // JSONデータを抽出して進捗更新
     extractAndUpdateData(reply);
 
-    // 表示用テキスト（JSONブロックを除去）
-    const displayText = reply.replace(/```json[\s\S]*?```/g, '').trim();
+    // クイックリプライを抽出
+    const quickReplies = extractQuickReplies(reply);
+
+    // 表示用テキスト（JSONブロックとクイックリプライタグを除去）
+    const displayText = reply
+      .replace(/```json[\s\S]*?```/g, '')
+      .replace(/\[QUICK_REPLY:.*?\]/g, '')
+      .trim();
 
     chatHistory.push({ role: 'assistant', content: reply });
-    addMessage('ai', displayText);
+    addMessage('ai', displayText, quickReplies);
 
     // COLLECTION_COMPLETEチェック
     if (reply.includes('COLLECTION_COMPLETE')) {
@@ -200,7 +206,13 @@ async function sendToAI() {
   }
 }
 
-function addMessage(type, text) {
+function extractQuickReplies(text) {
+  const match = text.match(/\[QUICK_REPLY:\s*(.+?)\]/);
+  if (!match) return [];
+  return match[1].split('|').map(s => s.trim()).filter(Boolean);
+}
+
+function addMessage(type, text, quickReplies) {
   const container = $('#messages');
   const div = document.createElement('div');
   div.className = `msg msg-${type}`;
@@ -215,6 +227,28 @@ function addMessage(type, text) {
 
   div.appendChild(avatar);
   div.appendChild(bubble);
+
+  // クイックリプライボタンを表示
+  if (type === 'ai' && quickReplies && quickReplies.length > 0) {
+    const qrContainer = document.createElement('div');
+    qrContainer.className = 'quick-replies';
+    quickReplies.forEach(label => {
+      const btn = document.createElement('button');
+      btn.className = 'quick-reply-btn';
+      btn.textContent = label;
+      btn.addEventListener('click', () => {
+        // ボタンを無効化
+        qrContainer.remove();
+        // テキストをメッセージとして送信
+        addMessage('user', label);
+        chatHistory.push({ role: 'user', content: label });
+        sendToAI();
+      });
+      qrContainer.appendChild(btn);
+    });
+    div.appendChild(qrContainer);
+  }
+
   container.appendChild(div);
   scrollToBottom();
 }
