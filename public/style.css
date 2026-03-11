@@ -316,9 +316,6 @@ body {
 .pw-toggle:hover {
   color: var(--primary);
 }
-.input-group .pw-toggle ~ .input-line {
-  /* input-lineの位置調整不要 */
-}
 
 /* Glow button */
 .btn-glow {
@@ -569,6 +566,7 @@ body {
   display: flex;
   gap: 12px;
   animation: msgIn 0.35s ease-out;
+  flex-wrap: wrap;
 }
 
 @keyframes msgIn {
@@ -633,6 +631,7 @@ body {
   gap: 8px;
   margin-top: 8px;
   margin-left: 42px;
+  width: 100%;
 }
 .quick-reply-btn {
   padding: 7px 16px;
@@ -652,6 +651,168 @@ body {
   color: white;
   border-color: var(--primary);
   box-shadow: 0 2px 8px rgba(59,130,246,0.25);
+}
+
+/* === Date Picker Widget === */
+.date-picker-widget {
+  width: 100%;
+  margin-top: 10px;
+  margin-left: 42px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  max-width: 360px;
+}
+.date-picker-inner {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.date-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.date-col label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.date-col select {
+  padding: 10px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg-base);
+  cursor: pointer;
+  appearance: auto;
+}
+.date-col select:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.btn-date-confirm {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--teal));
+  color: white;
+  border: none;
+  border-radius: var(--radius-xs);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-date-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(59,130,246,0.25);
+}
+
+/* === Postal Code Widget === */
+.postal-widget {
+  width: 100%;
+  margin-top: 10px;
+  margin-left: 42px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  max-width: 420px;
+}
+.postal-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.postal-prefix {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.postal-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--text);
+  letter-spacing: 0.1em;
+}
+.postal-input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.btn-postal-search {
+  padding: 10px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-xs);
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-postal-search:disabled {
+  background: var(--bg-soft);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+.postal-result {
+  margin-top: 8px;
+}
+.postal-address-text {
+  font-size: 0.92rem;
+  color: var(--text);
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: var(--teal-pale);
+  border-radius: var(--radius-xs);
+  border-left: 3px solid var(--teal);
+}
+.postal-detail {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 0.92rem;
+  font-family: inherit;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.postal-detail:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.btn-postal-confirm {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--teal));
+  color: white;
+  border: none;
+  border-radius: var(--radius-xs);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-postal-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(59,130,246,0.25);
 }
 
 /* Typing indicator */
@@ -781,8 +942,8 @@ body {
 .modal-content {
   position: relative;
   width: 90%;
-  max-width: 800px;
-  max-height: 85vh;
+  max-width: 860px;
+  max-height: 90vh;
   border-radius: var(--radius);
   display: flex;
   flex-direction: column;
@@ -835,13 +996,42 @@ body {
   color: var(--text);
 }
 
+/* Export bar */
+.export-bar {
+  display: flex;
+  gap: 10px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-base);
+}
+
+.btn-export {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 0.84rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-export:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-pale);
+}
+
 .draft-body {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
   font-size: 0.93rem;
   line-height: 1.9;
-  white-space: pre-wrap;
   color: var(--text);
   background: var(--bg-base);
 }
@@ -902,6 +1092,135 @@ body {
 .btn-edit:hover { background: var(--primary-deep); }
 .btn-edit:disabled { background: var(--bg-soft); color: var(--text-muted); cursor: not-allowed; }
 
+/* ============ APPLICATION FORM PREVIEW ============ */
+.app-form {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-page {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 32px 28px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.form-title {
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.form-subtitle {
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.form-section-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--primary-deep);
+  margin: 20px 0 10px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--primary);
+}
+
+.form-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.form-table th,
+.form-table td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.form-table th {
+  background: var(--bg-soft);
+  font-weight: 600;
+  white-space: nowrap;
+  width: 110px;
+  color: var(--text-secondary);
+}
+
+.form-table-list th {
+  background: var(--primary-pale);
+  text-align: center;
+  color: var(--primary-deep);
+}
+
+.form-table-list td {
+  text-align: center;
+}
+
+.career-detail {
+  text-align: left !important;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: var(--bg-base);
+  line-height: 1.6;
+}
+
+.form-text-box {
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  border-radius: var(--radius-xs);
+  font-size: 0.9rem;
+  line-height: 1.8;
+  min-height: 80px;
+  background: var(--bg-white);
+}
+
+.form-text-box-sm {
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  border-radius: var(--radius-xs);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  min-height: 48px;
+  background: var(--bg-white);
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-essay-topic {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.form-essay-body {
+  border: 1px solid var(--border);
+  padding: 20px;
+  border-radius: var(--radius-xs);
+  font-size: 0.92rem;
+  line-height: 2;
+  min-height: 300px;
+  background: var(--bg-white);
+}
+
+.form-char-count {
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
 /* ============ SCROLLBAR ============ */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -930,4 +1249,17 @@ body {
   .btn-generate { margin-top: 0; padding: 10px 16px; font-size: 0.85rem; }
   .chat-area { height: 0; flex: 1; }
   .login-card { margin: 16px; padding: 36px 24px; }
+  .form-grid-2 { grid-template-columns: 1fr; }
+  .date-picker-widget, .postal-widget { margin-left: 0; }
+}
+
+/* ============ PRINT ============ */
+@media print {
+  body { overflow: visible; }
+  .top-bar, .progress-panel, .chat-area, .modal-header, .export-bar, .draft-edit-area, .modal-overlay { display: none !important; }
+  .modal { position: static; }
+  .modal-content { max-height: none; max-width: 100%; width: 100%; box-shadow: none; border: none; }
+  .draft-body { overflow: visible; padding: 0; }
+  .form-page { page-break-after: always; box-shadow: none; border: 1px solid #ccc; }
+  .form-page:last-child { page-break-after: auto; }
 }

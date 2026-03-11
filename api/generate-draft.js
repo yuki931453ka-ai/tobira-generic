@@ -20,45 +20,53 @@ ${GUIDE_CONTEXT}
 【申込者が入力した情報】
 ${JSON.stringify(formData, null, 2)}
 
-以下の形式でドラフトを作成してください：
+以下のJSON形式で出力してください。必ず \`\`\`json で開始し \`\`\` で閉じてください。
+JSONの各フィールドに対応する内容を文字列で入れてください。
 
-## 申込書ドラフト
-
-### 基本情報
-氏名、生年月日、住所、連絡先を整理
-
-### 学歴
-時系列で整理
-
-### 資格
-社会福祉士を最上段に
-
-### 志望の動機
-参考資料のポイントを踏まえた説得力のある志望動機（3〜5文）
-
-### 趣味・特技
-地域活動との関連性を意識
-
-### スポーツ・文化活動・ボランティア等の経験
-
-### 興味関心をもって取り組んでいること
-
-### 自覚している性格
-相談職にふさわしい特性を具体的に
-
-### 本人希望記入欄
-
-### 職務経歴書
-直近から遡って整理。経験業務の内容は具体的に。
-
-### 課題式作文（750〜1,200字）
-題目：「障がい者・児の相談業務及び一般事務」に対する基本的な姿勢について
-推奨構成（導入→経験→社協・ひびきへの考え方→まとめ）に従って作成。
+\`\`\`json
+{
+  "fullname": "氏名",
+  "furigana": "ふりがな",
+  "birthDate": "生年月日",
+  "age": "年齢（数値）",
+  "postalCode": "郵便番号",
+  "address": "住所",
+  "phone": "電話番号",
+  "daytimePhone": "昼間の連絡先",
+  "education": [
+    {"school": "学校名", "period": "在籍期間", "status": "卒業/修了/中退等"}
+  ],
+  "qualifications": [
+    {"name": "資格名", "date": "取得年月", "status": "取得/見込み等"}
+  ],
+  "careers": [
+    {
+      "company": "会社名",
+      "industry": "業種",
+      "position": "職種",
+      "type": "雇用形態",
+      "period": "在籍期間",
+      "detail": "経験業務の内容（具体的に）"
+    }
+  ],
+  "motivation": "志望の動機（3〜5文の完成された文章）",
+  "hobbies": "趣味・特技",
+  "volunteer": "スポーツ・文化活動・ボランティア等の経験",
+  "interests": "興味関心をもって取り組んでいること",
+  "personality": "自覚している性格",
+  "requests": "本人希望記入欄",
+  "essay": "課題式作文の全文（750〜1200字）"
+}
+\`\`\`
 
 重要：
 - 申込者の実際の経験を尊重し、虚偽の情報は追加しない
 - 参考資料のキーワードを自然に織り込む
-- 未入力項目は「【要記入】」と表示`;
+- 未入力項目は「【要記入】」と表示
+- 課題式作文の題目：「障がい者・児の相談業務及び一般事務」に対する基本的な姿勢について
+- 課題式作文は推奨構成（導入→経験→社協・ひびきへの考え方→まとめ）に従って作成
+- 資格欄は社会福祉士を最上段に
+- 志望動機は①なぜ社協か②何をしたいか③経験・強みの活用を含む`;
 
   try {
     const message = await anthropic.messages.create({
@@ -67,7 +75,20 @@ ${JSON.stringify(formData, null, 2)}
       messages: [{ role: 'user', content: prompt }],
     });
 
-    res.json({ draft: message.content[0].text });
+    const text = message.content[0].text;
+
+    // JSONを抽出
+    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      try {
+        const structured = JSON.parse(jsonMatch[1]);
+        res.json({ draft: text, structured });
+      } catch {
+        res.json({ draft: text, structured: null });
+      }
+    } else {
+      res.json({ draft: text, structured: null });
+    }
   } catch (error) {
     console.error('Generate draft error:', error);
     res.status(500).json({ error: 'ドラフト生成エラー: ' + error.message });

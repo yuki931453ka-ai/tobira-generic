@@ -22,7 +22,8 @@ ${currentDraft}
 【修正要望】
 ${editRequest}
 
-修正後のドラフト全文を出力してください。変更箇所の前に「★」を付けてください。`;
+修正後のドラフト全文を、元と同じJSON形式（\`\`\`json で囲む）で出力してください。
+変更したフィールドの値には先頭に「★」を付けてください。`;
 
   try {
     const message = await anthropic.messages.create({
