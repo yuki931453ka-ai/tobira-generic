@@ -11,6 +11,7 @@ let chatHistory = [];
 let collectedData = {};
 let currentDraft = '';
 let currentStructured = null;
+let currentSessionId = null; // 現在のセッションID
 
 // === Password Toggle ===
 function togglePw(inputId, btn) {
@@ -100,29 +101,112 @@ $('#logout-btn').addEventListener('click', () => {
   $('#password').value = '';
 });
 
-// === Chat History Persistence ===
-function saveHistory() {
-  if (!currentEmail) return;
+// === Multi-Session Persistence ===
+function getSessionsKey() { return 'tobira_sessions_' + currentEmail; }
+
+function getAllSessions() {
   try {
-    localStorage.setItem('tobira_chat_' + currentEmail, JSON.stringify({
+    const raw = localStorage.getItem(getSessionsKey());
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveAllSessions(sessions) {
+  try { localStorage.setItem(getSessionsKey(), JSON.stringify(sessions)); } catch { /* ignore */ }
+}
+
+function saveHistory() {
+  if (!currentEmail || !currentSessionId) return;
+  try {
+    const sessions = getAllSessions();
+    const idx = sessions.findIndex(s => s.id === currentSessionId);
+    const firstAssistant = chatHistory.find(m => m.role === 'assistant');
+    const label = getSessionLabel();
+    const sessionData = {
+      id: currentSessionId,
+      label,
+      updatedAt: new Date().toISOString(),
       chatHistory, collectedData, userName,
-    }));
+      draft: currentDraft || null,
+      structured: currentStructured || null,
+    };
+    if (idx >= 0) sessions[idx] = sessionData;
+    else sessions.unshift(sessionData);
+    saveAllSessions(sessions);
   } catch { /* ignore */ }
+}
+
+function getSessionLabel() {
+  // collectedDataから名前+応募先を組み立て
+  const name = collectedData.fullname || '';
+  const target = collectedData.targetCompany || collectedData.targetPosition || '';
+  if (name && target) return `${name} - ${target}`;
+  if (name) return name;
+  // chatHistoryの最初のuserメッセージから推測
+  const firstUser = chatHistory.find(m => m.role === 'user');
+  if (firstUser) {
+    const short = firstUser.content.replace(/【.*?】[\s\S]*$/g, '').slice(0, 40);
+    return short || '新規作成';
+  }
+  return '新規作成';
 }
 
 function loadHistory() {
   if (!currentEmail) return false;
   try {
-    const raw = localStorage.getItem('tobira_chat_' + currentEmail);
-    if (!raw) return false;
-    const data = JSON.parse(raw);
-    if (data.chatHistory && data.chatHistory.length > 0) {
-      chatHistory = data.chatHistory;
-      collectedData = data.collectedData || {};
-      return true;
+    const sessions = getAllSessions();
+    // 旧形式からの移行
+    const legacyRaw = localStorage.getItem('tobira_chat_' + currentEmail);
+    if (legacyRaw && sessions.length === 0) {
+      const legacy = JSON.parse(legacyRaw);
+      if (legacy.chatHistory && legacy.chatHistory.length > 0) {
+        const sid = 'session_' + Date.now();
+        sessions.push({
+          id: sid, label: '移行されたセッション',
+          updatedAt: new Date().toISOString(),
+          chatHistory: legacy.chatHistory,
+          collectedData: legacy.collectedData || {},
+          userName: legacy.userName || userName,
+        });
+        saveAllSessions(sessions);
+        localStorage.removeItem('tobira_chat_' + currentEmail);
+      }
     }
+    if (sessions.length === 0) return false;
+    // 最新セッションを読み込み
+    const latest = sessions[0];
+    currentSessionId = latest.id;
+    chatHistory = latest.chatHistory;
+    collectedData = latest.collectedData || {};
+    currentDraft = latest.draft || '';
+    currentStructured = latest.structured || null;
+    return true;
   } catch { /* ignore */ }
   return false;
+}
+
+function loadSession(sessionId) {
+  const sessions = getAllSessions();
+  const session = sessions.find(s => s.id === sessionId);
+  if (!session) return;
+  currentSessionId = session.id;
+  chatHistory = session.chatHistory;
+  collectedData = session.collectedData || {};
+  currentDraft = session.draft || '';
+  currentStructured = session.structured || null;
+  userName = session.userName || userName;
+  // UI復元
+  $('#messages').innerHTML = '';
+  $('#welcome-banner').classList.add('hidden');
+  $('#upload-zone').classList.add('hidden');
+  restoreMessages();
+  if (currentDraft) $('#generate-btn').disabled = false;
+}
+
+function deleteSession(sessionId) {
+  let sessions = getAllSessions();
+  sessions = sessions.filter(s => s.id !== sessionId);
+  saveAllSessions(sessions);
 }
 
 function restoreMessages() {
@@ -157,9 +241,29 @@ function enterMainChat() {
   // 履歴がない場合はウェルカムバナーの選択待ち
 }
 
+function resetToWelcome() {
+  chatHistory = [];
+  collectedData = {};
+  currentDraft = '';
+  currentStructured = null;
+  currentSessionId = null;
+  pendingUploads = [];
+  $('#messages').innerHTML = '';
+  $('#upload-zone').classList.add('hidden');
+  $('#upload-file-list').innerHTML = '';
+  $('#upload-start-btn').classList.add('hidden');
+  $('#welcome-banner').classList.remove('hidden');
+  $('#generate-btn').disabled = true;
+  $('#progress-pct').textContent = '0%';
+  const circle = $('#progress-circle');
+  circle.style.strokeDashoffset = 2 * Math.PI * 42;
+  $$('.field-list li').forEach(li => li.classList.remove('filled'));
+}
+
 // === Start Mode Selection ===
 $('#start-scratch').addEventListener('click', () => {
   $('#welcome-banner').classList.add('hidden');
+  currentSessionId = 'session_' + Date.now();
   chatHistory.push({ role: 'user', content: `こんにちは。私の名前は${userName}です。応募書類をゼロから作成したいです。` });
   sendToAI();
 });
@@ -167,7 +271,99 @@ $('#start-scratch').addEventListener('click', () => {
 $('#start-upload').addEventListener('click', () => {
   $('#welcome-banner').classList.add('hidden');
   $('#upload-zone').classList.remove('hidden');
+  currentSessionId = 'session_' + Date.now();
   pendingUploads = [];
+});
+
+// === Upload Zone: Back Button ===
+$('#upload-back-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  resetToWelcome();
+});
+
+// === History Panel ===
+$('#history-btn').addEventListener('click', () => {
+  renderHistoryPanel();
+  $('#history-panel').classList.remove('hidden');
+});
+$('#history-close-btn').addEventListener('click', () => {
+  $('#history-panel').classList.add('hidden');
+});
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('side-panel-overlay')) {
+    $('#history-panel').classList.add('hidden');
+  }
+});
+
+function renderHistoryPanel() {
+  const list = $('#history-list');
+  const sessions = getAllSessions();
+  if (sessions.length === 0) {
+    list.innerHTML = '<p class="history-empty">履歴はまだありません</p>';
+    return;
+  }
+  list.innerHTML = '';
+  sessions.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'history-item' + (s.id === currentSessionId ? ' active' : '');
+    const date = new Date(s.updatedAt);
+    const dateStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
+    const msgCount = s.chatHistory ? s.chatHistory.length : 0;
+    const pct = calcProgressPct(s.collectedData || {});
+    item.innerHTML = `
+      <div class="history-item-main">
+        <div class="history-label">${escapeHtml(s.label || '新規作成')}</div>
+        <div class="history-meta">${dateStr} / ${msgCount}メッセージ / 進捗${pct}%</div>
+      </div>
+      <div class="history-actions">
+        <button class="history-load-btn" title="開く">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </button>
+        <button class="history-delete-btn" title="削除">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    `;
+    item.querySelector('.history-load-btn').addEventListener('click', () => {
+      loadSession(s.id);
+      $('#history-panel').classList.add('hidden');
+    });
+    item.querySelector('.history-delete-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm(`「${s.label || '新規作成'}」を削除しますか？`)) {
+        deleteSession(s.id);
+        if (s.id === currentSessionId) resetToWelcome();
+        renderHistoryPanel();
+      }
+    });
+    list.appendChild(item);
+  });
+}
+
+function calcProgressPct(data) {
+  let filled = 0;
+  const total = Object.keys(FIELD_MAP).length;
+  Object.entries(FIELD_MAP).forEach(([, keys]) => {
+    const isFilled = keys.some(k => {
+      const val = data[k];
+      if (Array.isArray(val)) return val.length > 0;
+      return val && val.toString().trim() !== '';
+    });
+    if (isFilled) filled++;
+  });
+  return Math.round((filled / total) * 100);
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// === New Document Button ===
+$('#new-doc-btn').addEventListener('click', () => {
+  if (chatHistory.length > 0) {
+    saveHistory(); // 現在の進捗を保存
+  }
+  resetToWelcome();
 });
 
 // === Upload Zone (書類読み込みモード) ===
@@ -213,7 +409,7 @@ async function processUploadFiles(files) {
 
 $('#upload-start-btn').addEventListener('click', () => {
   $('#upload-zone').classList.add('hidden');
-  // アップロードされた書類をチャット履歴に追加
+  if (!currentSessionId) currentSessionId = 'session_' + Date.now();
   const fileNames = pendingUploads.map(f => f.name).join('、');
   let uploadMsg = `こんにちは。私の名前は${userName}です。以下の書類をアップロードしました。内容を読み取って、応募書類の作成をサポートしてください。\n\n`;
   pendingUploads.forEach(f => {
