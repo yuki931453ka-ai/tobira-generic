@@ -116,6 +116,11 @@ module.exports = async (req, res) => {
     res.json({ reply: text });
   } catch (error) {
     console.error('Chat API error:', error);
-    res.status(500).json({ error: 'AIとの通信でエラーが発生しました: ' + error.message });
+    const hasKey = !!process.env.ANTHROPIC_API_KEY;
+    const keyPrefix = hasKey ? process.env.ANTHROPIC_API_KEY.slice(0, 10) : 'MISSING';
+    res.status(500).json({
+      error: 'AIとの通信でエラーが発生しました: ' + error.message,
+      debug: { hasKey, keyPrefix, errorType: error.constructor.name }
+    });
   }
 };
