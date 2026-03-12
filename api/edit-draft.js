@@ -1,7 +1,6 @@
-const AnthropicModule = require('@anthropic-ai/sdk');
-const Anthropic = AnthropicModule.default || AnthropicModule;
+const Anthropic = require('@anthropic-ai/sdk');
 
-const anthropic = new Anthropic({
+const anthropic = new Anthropic.default({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 

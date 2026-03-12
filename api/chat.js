@@ -1,7 +1,6 @@
-const AnthropicModule = require('@anthropic-ai/sdk');
-const Anthropic = AnthropicModule.default || AnthropicModule;
+const Anthropic = require('@anthropic-ai/sdk');
 
-const anthropic = new Anthropic({
+const anthropic = new Anthropic.default({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
@@ -116,11 +115,6 @@ module.exports = async (req, res) => {
     res.json({ reply: text });
   } catch (error) {
     console.error('Chat API error:', error);
-    const hasKey = !!process.env.ANTHROPIC_API_KEY;
-    const keyPrefix = hasKey ? process.env.ANTHROPIC_API_KEY.slice(0, 10) : 'MISSING';
-    res.status(500).json({
-      error: 'AIとの通信でエラーが発生しました: ' + error.message,
-      debug: { hasKey, keyPrefix, errorType: error.constructor.name }
-    });
+    res.status(500).json({ error: 'AIとの通信でエラーが発生しました: ' + error.message });
   }
 };
