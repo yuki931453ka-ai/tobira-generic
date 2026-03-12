@@ -1,5 +1,4 @@
 const Anthropic = require('@anthropic-ai/sdk');
-const { GUIDE_CONTEXT } = require('./_shared');
 
 const anthropic = new Anthropic.default({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -13,8 +12,6 @@ module.exports = async (req, res) => {
   const { currentDraft, editRequest } = req.body;
 
   const prompt = `あなたは応募書類作成の専門家です。
-
-${GUIDE_CONTEXT}
 
 【現在のドラフト】
 ${currentDraft}

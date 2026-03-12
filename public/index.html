@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tobira - 就職活動向けAIサービス</title>
+  <title>Tobira - 就職活動支援AIサービス</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚪</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -23,14 +23,14 @@
           <div class="logo-mark">
             <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
               <rect x="6" y="8" width="28" height="40" rx="4" stroke="url(#g1)" stroke-width="2.5" fill="none"/>
-              <rect x="22" y="8" width="28" height="40" rx="4" stroke="url(#g2)" stroke-width="2.5" fill="rgba(59,130,246,0.04)"/>
-              <circle cx="44" cy="28" r="2.5" fill="#F59E0B"/>
+              <rect x="22" y="8" width="28" height="40" rx="4" stroke="url(#g2)" stroke-width="2.5" fill="rgba(6,182,212,0.04)"/>
+              <circle cx="44" cy="28" r="2.5" fill="#06B6D4"/>
               <defs>
                 <linearGradient id="g1" x1="6" y1="8" x2="34" y2="48" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#3B82F6"/><stop offset="1" stop-color="#60A5FA"/>
+                  <stop stop-color="#06B6D4"/><stop offset="1" stop-color="#67E8F9"/>
                 </linearGradient>
                 <linearGradient id="g2" x1="22" y1="8" x2="50" y2="48" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#14B8A6"/><stop offset="1" stop-color="#2DD4BF"/>
+                  <stop stop-color="#0EA5E9"/><stop offset="1" stop-color="#7DD3FC"/>
                 </linearGradient>
               </defs>
             </svg>
@@ -70,9 +70,9 @@
       <div class="login-card glass">
         <div class="logo-area logo-area-sm">
           <svg width="36" height="36" viewBox="0 0 56 56" fill="none">
-            <rect x="6" y="8" width="28" height="40" rx="4" stroke="#3B82F6" stroke-width="2.5" fill="none"/>
-            <rect x="22" y="8" width="28" height="40" rx="4" stroke="#14B8A6" stroke-width="2.5" fill="rgba(59,130,246,0.04)"/>
-            <circle cx="44" cy="28" r="2.5" fill="#F59E0B"/>
+            <rect x="6" y="8" width="28" height="40" rx="4" stroke="#06B6D4" stroke-width="2.5" fill="none"/>
+            <rect x="22" y="8" width="28" height="40" rx="4" stroke="#0EA5E9" stroke-width="2.5" fill="rgba(6,182,212,0.04)"/>
+            <circle cx="44" cy="28" r="2.5" fill="#06B6D4"/>
           </svg>
           <span class="logo-text-inline">Tobira</span>
         </div>
@@ -106,9 +106,9 @@
         <div class="top-bar-inner">
           <div class="top-bar-logo">
             <svg width="24" height="24" viewBox="0 0 56 56" fill="none">
-              <rect x="6" y="8" width="28" height="40" rx="4" stroke="#3B82F6" stroke-width="2.5" fill="none"/>
-              <rect x="22" y="8" width="28" height="40" rx="4" stroke="#14B8A6" stroke-width="2.5" fill="rgba(59,130,246,0.06)"/>
-              <circle cx="44" cy="28" r="2.5" fill="#F59E0B"/>
+              <rect x="6" y="8" width="28" height="40" rx="4" stroke="#06B6D4" stroke-width="2.5" fill="none"/>
+              <rect x="22" y="8" width="28" height="40" rx="4" stroke="#0EA5E9" stroke-width="2.5" fill="rgba(6,182,212,0.06)"/>
+              <circle cx="44" cy="28" r="2.5" fill="#06B6D4"/>
             </svg>
             <span>Tobira</span>
           </div>
@@ -130,7 +130,7 @@
                 stroke-dasharray="263.9" stroke-dashoffset="263.9" stroke-linecap="round" transform="rotate(-90 50 50)"/>
               <defs>
                 <linearGradient id="prog-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#10B981"/>
+                  <stop offset="0%" stop-color="#06B6D4"/><stop offset="100%" stop-color="#10B981"/>
                 </linearGradient>
               </defs>
             </svg>
@@ -144,8 +144,7 @@
             <li data-field="qualifications"><span class="dot"></span>資格</li>
             <li data-field="careers"><span class="dot"></span>職務経歴</li>
             <li data-field="motivation"><span class="dot"></span>志望動機</li>
-            <li data-field="personality"><span class="dot"></span>性格・趣味等</li>
-            <li data-field="essayValues"><span class="dot"></span>作文素材</li>
+            <li data-field="personality"><span class="dot"></span>性格・自己PR</li>
           </ul>
           <button id="generate-btn" class="btn-generate" disabled>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -160,16 +159,16 @@
           <div id="welcome-banner" class="welcome-banner">
             <div class="welcome-icon">
               <svg width="32" height="32" viewBox="0 0 56 56" fill="none">
-                <rect x="6" y="8" width="28" height="40" rx="4" stroke="#3B82F6" stroke-width="2.5" fill="none"/>
-                <rect x="22" y="8" width="28" height="40" rx="4" stroke="#14B8A6" stroke-width="2.5" fill="rgba(59,130,246,0.06)"/>
-                <circle cx="44" cy="28" r="2.5" fill="#F59E0B"/>
+                <rect x="6" y="8" width="28" height="40" rx="4" stroke="#06B6D4" stroke-width="2.5" fill="none"/>
+                <rect x="22" y="8" width="28" height="40" rx="4" stroke="#0EA5E9" stroke-width="2.5" fill="rgba(6,182,212,0.06)"/>
+                <circle cx="44" cy="28" r="2.5" fill="#06B6D4"/>
               </svg>
             </div>
             <h2>Tobira にようこそ</h2>
             <p>AIアシスタントが質問しますので、会話形式で答えていくだけで<br>応募書類のドラフトが完成します。</p>
             <div class="welcome-steps">
-              <div class="step"><span class="step-num">1</span>基本情報を教えてください</div>
-              <div class="step"><span class="step-num">2</span>経歴・資格をヒアリング</div>
+              <div class="step"><span class="step-num">1</span>応募先と書類を確認</div>
+              <div class="step"><span class="step-num">2</span>基本情報・経歴をヒアリング</div>
               <div class="step"><span class="step-num">3</span>志望動機を一緒に深掘り</div>
               <div class="step"><span class="step-num">4</span>AIがドラフトを自動生成</div>
             </div>
@@ -181,8 +180,16 @@
             </div>
             <span class="typing-label">Tobira が考えています...</span>
           </div>
+          <!-- ファイルアップロードエリア -->
+          <div id="upload-area" class="upload-area hidden">
+            <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.rtf,.jpg,.jpeg,.png" multiple>
+            <p class="upload-hint">書類をアップロード（PDF, Word, テキスト, 画像）</p>
+          </div>
           <form id="chat-form" class="chat-input-area">
             <div class="chat-input-wrapper">
+              <button type="button" class="btn-attach" id="attach-btn" title="ファイルをアップロード">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </button>
               <textarea id="chat-input" rows="1" placeholder="メッセージを入力...（Shift+Enter で送信）" required></textarea>
               <button type="submit" class="btn-send" id="send-btn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -199,7 +206,7 @@
         <div class="modal-overlay"></div>
         <div class="modal-content glass-dark">
           <div class="modal-header">
-            <h2>申込書プレビュー</h2>
+            <h2>応募書類プレビュー</h2>
             <div class="modal-actions">
               <span class="ai-badge">AI Generated</span>
               <button class="btn-close" onclick="closeDraftModal()">&times;</button>
@@ -215,7 +222,6 @@
               テキスト保存
             </button>
           </div>
-          <!-- 申込書フォーマットプレビュー -->
           <div id="draft-content" class="draft-body">
             <div id="app-form-preview" class="app-form"></div>
           </div>
