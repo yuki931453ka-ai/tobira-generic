@@ -133,6 +133,27 @@ body {
 .step { display: flex; align-items: center; gap: 8px; background: var(--bg-white); border: 1px solid var(--border-light); border-radius: 24px; padding: 8px 16px; font-size: 0.82rem; color: var(--text-secondary); font-weight: 500; }
 .step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border-radius: 50%; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
 
+/* Start Mode Cards */
+.start-mode-cards { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+.start-card { background: var(--bg-white); border: 2px solid var(--border-light); border-radius: var(--radius); padding: 24px 20px 20px; width: 240px; cursor: pointer; transition: all 0.3s; text-align: left; font-family: inherit; color: var(--text); }
+.start-card:hover { border-color: var(--primary); box-shadow: 0 4px 20px rgba(6,182,212,0.15); transform: translateY(-2px); }
+.start-card-icon { width: 48px; height: 48px; background: var(--primary-pale); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--primary); }
+.start-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+.start-card > p { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
+.start-card-steps { display: flex; flex-direction: column; gap: 4px; }
+.start-card-steps span { font-size: 0.72rem; color: var(--text-muted); padding-left: 4px; }
+
+/* Upload Zone */
+.upload-zone { display: flex; justify-content: center; padding: 40px 24px; }
+.upload-zone-inner { width: 100%; max-width: 480px; border: 2px dashed var(--border); border-radius: var(--radius); padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; }
+.upload-zone-inner:hover, .upload-zone.dragover .upload-zone-inner { border-color: var(--primary); background: var(--primary-pale); }
+.upload-zone-title { font-size: 0.95rem; font-weight: 600; color: var(--text); margin: 12px 0 6px; }
+.upload-zone-hint { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
+.upload-zone input[type="file"] { display: none; }
+.upload-file-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; text-align: left; }
+.upload-file-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg-base); border-radius: var(--radius-xs); font-size: 0.85rem; color: var(--text); }
+.upload-start-btn { margin-top: 16px; width: 100%; }
+
 /* Floating label inputs */
 .input-group { position: relative; margin-bottom: 24px; }
 .input-group input { width: 100%; padding: 16px 14px 8px; background: var(--bg-base); border: 1.5px solid var(--border-light); border-radius: var(--radius-sm); color: var(--text); font-size: 0.95rem; font-family: inherit; transition: all 0.3s; }

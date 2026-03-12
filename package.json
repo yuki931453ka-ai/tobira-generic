@@ -1,7 +1,7 @@
 {
-  "name": "moushikomi-app",
+  "name": "tobira-generic",
   "version": "1.0.0",
-  "description": "小平市社協 嘱託職員募集申込書作成アプリ",
+  "description": "Tobira - 就職活動支援AIサービス（汎用版）",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -143,6 +143,8 @@ function restoreMessages() {
 }
 
 // === Enter Main Chat ===
+let pendingUploads = []; // アップロード待ちファイルのテキスト
+
 function enterMainChat() {
   showSection('main');
   $('#display-name').textContent = userName;
@@ -151,13 +153,79 @@ function enterMainChat() {
     const banner = $('#welcome-banner');
     if (banner) banner.classList.add('hidden');
     restoreMessages();
-  } else {
-    chatHistory.push({ role: 'user', content: `こんにちは。私の名前は${userName}です。応募書類の作成をお願いします。` });
-    sendToAI();
+  }
+  // 履歴がない場合はウェルカムバナーの選択待ち
+}
+
+// === Start Mode Selection ===
+$('#start-scratch').addEventListener('click', () => {
+  $('#welcome-banner').classList.add('hidden');
+  chatHistory.push({ role: 'user', content: `こんにちは。私の名前は${userName}です。応募書類をゼロから作成したいです。` });
+  sendToAI();
+});
+
+$('#start-upload').addEventListener('click', () => {
+  $('#welcome-banner').classList.add('hidden');
+  $('#upload-zone').classList.remove('hidden');
+  pendingUploads = [];
+});
+
+// === Upload Zone (書類読み込みモード) ===
+const uploadZone = document.getElementById('upload-zone');
+const uploadZoneInput = document.getElementById('upload-zone-input');
+
+if (uploadZone) {
+  uploadZone.addEventListener('click', (e) => {
+    if (e.target.closest('.upload-start-btn') || e.target.closest('.upload-file-item')) return;
+    uploadZoneInput.click();
+  });
+  uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+  uploadZone.addEventListener('dragleave', () => { uploadZone.classList.remove('dragover'); });
+  uploadZone.addEventListener('drop', async (e) => {
+    e.preventDefault(); uploadZone.classList.remove('dragover');
+    await processUploadFiles(e.dataTransfer.files);
+  });
+}
+
+if (uploadZoneInput) {
+  uploadZoneInput.addEventListener('change', async (e) => {
+    await processUploadFiles(e.target.files);
+    e.target.value = '';
+  });
+}
+
+async function processUploadFiles(files) {
+  const listEl = $('#upload-file-list');
+  for (const file of files) {
+    const text = await readFileAsText(file);
+    if (text) {
+      pendingUploads.push({ name: file.name, text });
+      const item = document.createElement('div');
+      item.className = 'upload-file-item';
+      item.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>${file.name}</span>`;
+      listEl.appendChild(item);
+    }
+  }
+  if (pendingUploads.length > 0) {
+    $('#upload-start-btn').classList.remove('hidden');
   }
 }
 
-// === File Upload ===
+$('#upload-start-btn').addEventListener('click', () => {
+  $('#upload-zone').classList.add('hidden');
+  // アップロードされた書類をチャット履歴に追加
+  const fileNames = pendingUploads.map(f => f.name).join('、');
+  let uploadMsg = `こんにちは。私の名前は${userName}です。以下の書類をアップロードしました。内容を読み取って、応募書類の作成をサポートしてください。\n\n`;
+  pendingUploads.forEach(f => {
+    uploadMsg += `【アップロードされた書類: ${f.name}】\n${f.text}\n\n`;
+  });
+  addMessage('user', `書類をアップロードしました: ${fileNames}`);
+  chatHistory.push({ role: 'user', content: uploadMsg });
+  pendingUploads = [];
+  sendToAI();
+});
+
+// === File Upload (チャット中の追加アップロード) ===
 $('#attach-btn').addEventListener('click', () => {
   $('#file-input').click();
 });
