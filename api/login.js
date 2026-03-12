@@ -13,5 +13,5 @@ module.exports = async (req, res) => {
   }
 
   const token = generateToken(email);
-  res.json({ token, name: user.name, passwordChanged: user.passwordChanged });
+  res.json({ token, name: user.name });
 };

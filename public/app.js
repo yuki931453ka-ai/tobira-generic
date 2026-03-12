@@ -25,7 +25,6 @@ function togglePw(inputId, btn) {
 // === Sections ===
 const sections = {
   login: $('#login-section'),
-  pw: $('#pw-section'),
   main: $('#main-section'),
 };
 
@@ -53,40 +52,9 @@ $('#login-form').addEventListener('submit', async (e) => {
     authToken = data.token;
     userName = data.name;
     currentEmail = email;
-
-    if (!data.passwordChanged) {
-      showSection('pw');
-      $('#greeting-msg').textContent = `こんにちは、${data.name}さん！`;
-    } else {
-      enterMainChat();
-    }
-  } catch {
-    $('#login-error').textContent = '通信エラーが発生しました。';
-  }
-});
-
-// === Password Change ===
-$('#pw-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const cur = $('#cur-pw').value;
-  const newPw = $('#new-pw').value;
-  const confirm = $('#confirm-pw').value;
-  $('#pw-error').textContent = '';
-
-  if (newPw.length < 8) { $('#pw-error').textContent = 'パスワードは8文字以上で設定してください。'; return; }
-  if (newPw !== confirm) { $('#pw-error').textContent = '新しいパスワードが一致しません。'; return; }
-
-  try {
-    const res = await fetch('/api/change-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ currentPassword: cur, newPassword: newPw, confirmPassword: confirm }),
-    });
-    const data = await res.json();
-    if (!res.ok) { $('#pw-error').textContent = data.error; return; }
     enterMainChat();
   } catch {
-    $('#pw-error').textContent = '通信エラーが発生しました。';
+    $('#login-error').textContent = '通信エラーが発生しました。';
   }
 });
 

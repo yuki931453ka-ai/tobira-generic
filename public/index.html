@@ -61,45 +61,6 @@
       </div>
     </div>
 
-    <!-- ============ パスワード変更画面 ============ -->
-    <div id="pw-section" class="section hidden">
-      <div class="login-bg">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-      </div>
-      <div class="login-card glass">
-        <div class="logo-area logo-area-sm">
-          <svg width="36" height="36" viewBox="0 0 56 56" fill="none">
-            <rect x="6" y="8" width="28" height="40" rx="4" stroke="#06B6D4" stroke-width="2.5" fill="none"/>
-            <rect x="22" y="8" width="28" height="40" rx="4" stroke="#0EA5E9" stroke-width="2.5" fill="rgba(6,182,212,0.04)"/>
-            <circle cx="44" cy="28" r="2.5" fill="#06B6D4"/>
-          </svg>
-          <span class="logo-text-inline">Tobira</span>
-        </div>
-        <h2 id="greeting-msg" class="greeting"></h2>
-        <div class="notice-bar">初回ログインのため、パスワードを変更してください。</div>
-        <form id="pw-form">
-          <div class="input-group">
-            <input type="password" id="cur-pw" required placeholder=" ">
-            <label for="cur-pw">現在のパスワード</label>
-            <div class="input-line"></div>
-          </div>
-          <div class="input-group">
-            <input type="password" id="new-pw" required minlength="8" placeholder=" ">
-            <label for="new-pw">新しいパスワード（8文字以上）</label>
-            <div class="input-line"></div>
-          </div>
-          <div class="input-group">
-            <input type="password" id="confirm-pw" required minlength="8" placeholder=" ">
-            <label for="confirm-pw">新しいパスワード（確認）</label>
-            <div class="input-line"></div>
-          </div>
-          <button type="submit" class="btn-glow">パスワードを変更</button>
-          <p id="pw-error" class="error-text"></p>
-        </form>
-      </div>
-    </div>
-
     <!-- ============ メインチャット画面 ============ -->
     <div id="main-section" class="section hidden">
       <header class="top-bar">
