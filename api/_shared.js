@@ -5,7 +5,6 @@ const USERS = {
   'admin': {
     password: 'k93145313',
     name: 'Admin',
-    passwordChanged: true,
   },
 };
 
