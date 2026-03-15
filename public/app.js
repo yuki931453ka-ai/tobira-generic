@@ -12,6 +12,7 @@ let collectedData = {};
 let currentDraft = '';
 let currentStructured = null;
 let currentSessionId = null; // 現在のセッションID
+let uploadedFiles = []; // セッション内にアップロードしたファイル記録 { name, addedAt }
 
 // === Password Toggle ===
 function togglePw(inputId, btn) {
@@ -97,6 +98,8 @@ function saveHistory() {
       chatHistory, collectedData, userName,
       draft: currentDraft || null,
       structured: currentStructured || null,
+      uploads: uploadedFiles,
+      hasDraft: !!currentDraft,
     };
     if (idx >= 0) sessions[idx] = sessionData;
     else sessions.unshift(sessionData);
@@ -163,6 +166,7 @@ function loadSession(sessionId) {
   currentDraft = session.draft || '';
   currentStructured = session.structured || null;
   userName = session.userName || userName;
+  uploadedFiles = session.uploads || [];
   // UI復元
   $('#messages').innerHTML = '';
   $('#welcome-banner').classList.add('hidden');
@@ -216,9 +220,11 @@ function resetToWelcome() {
   currentStructured = null;
   currentSessionId = null;
   pendingUploads = [];
+  uploadedFiles = [];
   $('#messages').innerHTML = '';
   $('#upload-zone').classList.add('hidden');
   $('#upload-file-list').innerHTML = '';
+  $('#upload-text-input').value = '';
   $('#upload-start-btn').classList.add('hidden');
   $('#welcome-banner').classList.remove('hidden');
   $('#generate-btn').disabled = true;
@@ -278,10 +284,14 @@ function renderHistoryPanel() {
     const dateStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
     const msgCount = s.chatHistory ? s.chatHistory.length : 0;
     const pct = calcProgressPct(s.collectedData || {});
+    const uploadsHtml = (s.uploads && s.uploads.length > 0)
+      ? `<div class="history-uploads">📎 ${escapeHtml(s.uploads.map(u => u.name).join(', '))}</div>` : '';
+    const draftBadge = s.hasDraft ? ' <span class="history-draft-badge">ドラフト済</span>' : '';
     item.innerHTML = `
       <div class="history-item-main">
-        <div class="history-label">${escapeHtml(s.label || '新規作成')}</div>
+        <div class="history-label">${escapeHtml(s.label || '新規作成')}${draftBadge}</div>
         <div class="history-meta">${dateStr} / ${msgCount}メッセージ / 進捗${pct}%</div>
+        ${uploadsHtml}
       </div>
       <div class="history-actions">
         <button class="history-load-btn" title="開く">
@@ -364,6 +374,7 @@ async function processUploadFiles(files) {
     const text = await readFileAsText(file);
     if (text) {
       pendingUploads.push({ name: file.name, text });
+      uploadedFiles.push({ name: file.name, addedAt: new Date().toISOString() });
       const item = document.createElement('div');
       item.className = 'upload-file-item';
       item.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>${file.name}</span>`;
@@ -374,6 +385,21 @@ async function processUploadFiles(files) {
     $('#upload-start-btn').classList.remove('hidden');
   }
 }
+
+// === Upload Text Input ===
+$('#upload-text-add-btn').addEventListener('click', () => {
+  const text = $('#upload-text-input').value.trim();
+  if (!text) return;
+  const label = 'テキスト入力 (' + text.slice(0, 20) + (text.length > 20 ? '...' : '') + ')';
+  pendingUploads.push({ name: label, text });
+  uploadedFiles.push({ name: label, addedAt: new Date().toISOString() });
+  const item = document.createElement('div');
+  item.className = 'upload-file-item';
+  item.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>${escapeHtml(label)}</span>`;
+  $('#upload-file-list').appendChild(item);
+  $('#upload-text-input').value = '';
+  $('#upload-start-btn').classList.remove('hidden');
+});
 
 $('#upload-start-btn').addEventListener('click', () => {
   $('#upload-zone').classList.add('hidden');
@@ -389,26 +415,77 @@ $('#upload-start-btn').addEventListener('click', () => {
   sendToAI();
 });
 
-// === File Upload (チャット中の追加アップロード) ===
-$('#attach-btn').addEventListener('click', () => {
-  $('#file-input').click();
-});
+// === Mid-chat File Upload (追加アップロード) ===
+$('#attach-btn').addEventListener('click', () => { $('#file-input').click(); });
 
 $('#file-input').addEventListener('change', async (e) => {
-  const files = e.target.files;
-  if (!files.length) return;
+  if (!e.target.files.length) return;
+  await handleMidChatUpload(e.target.files);
+  e.target.value = '';
+});
 
+async function handleMidChatUpload(files) {
+  const uploadedData = [];
   for (const file of files) {
     const text = await readFileAsText(file);
     if (text) {
-      const msg = `【アップロードされた書類: ${file.name}】\n${text}`;
-      addMessage('user', `書類をアップロードしました: ${file.name}`);
-      chatHistory.push({ role: 'user', content: msg });
+      uploadedData.push({ name: file.name, text });
+      uploadedFiles.push({ name: file.name, addedAt: new Date().toISOString() });
     }
   }
-  e.target.value = '';
-  sendToAI();
-});
+  if (uploadedData.length === 0) return;
+  const fileNames = uploadedData.map(f => f.name).join('、');
+  addMessage('user', `📎 書類を追加: ${fileNames}`);
+  showUploadConfirmPrompt(uploadedData);
+}
+
+function showUploadConfirmPrompt(uploadedData) {
+  const container = $('#messages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  div.innerHTML = `
+    <div class="msg-avatar">T</div>
+    <div class="msg-bubble">
+      <p>書類を追加しました。この書類をどのように活用しますか？</p>
+      <div class="upload-confirm-actions">
+        <button class="btn-upload-restart">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.12"/></svg>
+          このファイルを考慮して最初から作り直す
+        </button>
+        <button class="btn-upload-continue">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          現在の続きに追加して作業を進める
+        </button>
+      </div>
+    </div>
+  `;
+  div.querySelector('.btn-upload-restart').addEventListener('click', () => {
+    div.remove();
+    saveHistory();
+    chatHistory = [];
+    collectedData = {};
+    currentDraft = '';
+    currentStructured = null;
+    currentSessionId = 'session_' + Date.now();
+    uploadedFiles = uploadedData.map(f => ({ name: f.name, addedAt: new Date().toISOString() }));
+    $('#messages').innerHTML = '';
+    $('#generate-btn').disabled = true;
+    let uploadMsg = `こんにちは。私の名前は${userName}です。以下の書類をアップロードしました。内容を読み取って、応募書類の作成をサポートしてください。\n\n`;
+    uploadedData.forEach(f => { uploadMsg += `【アップロードされた書類: ${f.name}】\n${f.text}\n\n`; });
+    addMessage('user', `書類をアップロードして最初から作成: ${uploadedData.map(f => f.name).join('、')}`);
+    chatHistory.push({ role: 'user', content: uploadMsg });
+    sendToAI();
+  });
+  div.querySelector('.btn-upload-continue').addEventListener('click', () => {
+    div.remove();
+    let uploadMsg = `以下の書類を追加でアップロードしました。この内容も考慮して作業を続けてください。\n\n`;
+    uploadedData.forEach(f => { uploadMsg += `【追加書類: ${f.name}】\n${f.text}\n\n`; });
+    chatHistory.push({ role: 'user', content: uploadMsg });
+    sendToAI();
+  });
+  container.appendChild(div);
+  scrollToBottom();
+}
 
 function readFileAsText(file) {
   return new Promise((resolve) => {

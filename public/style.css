@@ -381,3 +381,23 @@ body {
 .history-load-btn, .history-delete-btn { background: none; border: 1px solid var(--border-light); color: var(--text-muted); padding: 6px; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
 .history-load-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-pale); }
 .history-delete-btn:hover { border-color: #EF4444; color: #EF4444; background: #FEF2F2; }
+
+/* Upload Text Input */
+.upload-text-section { margin-top: 16px; text-align: left; }
+.upload-or-divider { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.upload-or-divider::before, .upload-or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.upload-or-divider span { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+.upload-text-input { width: 100%; min-height: 80px; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit; color: var(--text); background: var(--bg-white); resize: vertical; transition: border-color 0.2s; }
+.upload-text-input:focus { outline: none; border-color: var(--primary); }
+.btn-text-add { margin-top: 8px; padding: 8px 18px; background: var(--primary-pale); color: var(--primary); border: 1.5px solid var(--primary); border-radius: var(--radius-xs); font-size: 0.85rem; font-family: inherit; cursor: pointer; transition: all 0.2s; }
+.btn-text-add:hover { background: var(--primary); color: #fff; }
+/* Mid-chat Upload Confirm */
+.upload-confirm-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.btn-upload-restart, .btn-upload-continue { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--radius-xs); font-size: 0.85rem; font-family: inherit; cursor: pointer; transition: all 0.2s; text-align: left; }
+.btn-upload-restart { background: #FEF2F2; border: 1.5px solid #FECACA; color: #DC2626; }
+.btn-upload-restart:hover { background: #DC2626; color: #fff; border-color: #DC2626; }
+.btn-upload-continue { background: var(--primary-pale); border: 1.5px solid var(--primary-light); color: var(--primary-deep); }
+.btn-upload-continue:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+/* History Uploads & Draft Badge */
+.history-uploads { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-draft-badge { display: inline-block; font-size: 0.68rem; font-weight: 600; color: #10B981; background: #D1FAE5; padding: 1px 6px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
