@@ -106,10 +106,77 @@ function saveHistory() {
     if (idx >= 0) sessions[idx] = sessionData;
     else sessions.unshift(sessionData);
     saveAllSessions(sessions);
+    saveProfile();
   } catch { /* ignore */ }
 }
 
 let savedScrollTop = 0; // セッション復元時のスクロール位置
+
+// === Profile Persistence (基本情報の自動保存・復元) ===
+const PROFILE_FIELDS = ['fullname','furigana','birthDate','age','postalCode','address','phone','contactEmail','education','qualifications'];
+
+function getProfileKey() { return 'tobira_profile_' + currentEmail; }
+
+function saveProfile() {
+  if (!currentEmail) return;
+  try {
+    const profile = JSON.parse(localStorage.getItem(getProfileKey()) || '{}');
+    let changed = false;
+    for (const key of PROFILE_FIELDS) {
+      if (collectedData[key] !== undefined && collectedData[key] !== null && collectedData[key] !== '') {
+        profile[key] = collectedData[key];
+        changed = true;
+      }
+    }
+    if (changed) localStorage.setItem(getProfileKey(), JSON.stringify(profile));
+  } catch { /* ignore */ }
+}
+
+function loadProfile() {
+  if (!currentEmail) return null;
+  try {
+    const raw = localStorage.getItem(getProfileKey());
+    if (!raw) return null;
+    const profile = JSON.parse(raw);
+    if (Object.keys(profile).length === 0) return null;
+    return profile;
+  } catch { return null; }
+}
+
+function formatProfileForMessage(profile) {
+  const lines = [];
+  if (profile.fullname) lines.push(`氏名: ${profile.fullname}`);
+  if (profile.furigana) lines.push(`ふりがな: ${profile.furigana}`);
+  if (profile.birthDate) lines.push(`生年月日: ${profile.birthDate}`);
+  if (profile.age) lines.push(`年齢: ${profile.age}`);
+  if (profile.postalCode) lines.push(`郵便番号: ${profile.postalCode}`);
+  if (profile.address) lines.push(`住所: ${profile.address}`);
+  if (profile.phone) lines.push(`電話番号: ${profile.phone}`);
+  if (profile.contactEmail) lines.push(`メールアドレス: ${profile.contactEmail}`);
+  if (profile.education && Array.isArray(profile.education) && profile.education.length > 0) {
+    lines.push(`学歴:`);
+    profile.education.forEach(e => {
+      lines.push(`  - ${e.school || ''} ${e.period || ''} ${e.status || ''}`);
+    });
+  }
+  if (profile.qualifications && Array.isArray(profile.qualifications) && profile.qualifications.length > 0) {
+    lines.push(`資格:`);
+    profile.qualifications.forEach(q => {
+      lines.push(`  - ${q.name || ''} ${q.date || ''} ${q.status || ''}`);
+    });
+  }
+  return lines.length > 0 ? lines.join('\n') : null;
+}
+
+function preloadProfile() {
+  const profile = loadProfile();
+  if (!profile) return;
+  for (const key of PROFILE_FIELDS) {
+    if (profile[key] !== undefined && collectedData[key] === undefined) {
+      collectedData[key] = profile[key];
+    }
+  }
+}
 
 function getSessionLabel() {
   // collectedDataから名前+応募先を組み立て
@@ -253,7 +320,16 @@ function resetToWelcome() {
 $('#start-scratch').addEventListener('click', () => {
   $('#welcome-banner').classList.add('hidden');
   currentSessionId = 'session_' + Date.now();
-  chatHistory.push({ role: 'user', content: `こんにちは。私の名前は${userName}です。応募書類をゼロから作成したいです。` });
+  let msg = `こんにちは。私の名前は${userName}です。応募書類をゼロから作成したいです。`;
+  const profile = loadProfile();
+  if (profile) {
+    const profileText = formatProfileForMessage(profile);
+    if (profileText) {
+      msg += `\n\n【登録済みの基本情報】\n${profileText}\n\n上記の情報に変更がなければ、確認だけして次に進んでください。`;
+    }
+    preloadProfile();
+  }
+  chatHistory.push({ role: 'user', content: msg });
   sendToAI();
 });
 
@@ -424,6 +500,14 @@ $('#upload-start-btn').addEventListener('click', () => {
   pendingUploads.forEach(f => {
     uploadMsg += `【アップロードされた書類: ${f.name}】\n${f.text}\n\n`;
   });
+  const profile = loadProfile();
+  if (profile) {
+    const profileText = formatProfileForMessage(profile);
+    if (profileText) {
+      uploadMsg += `【登録済みの基本情報】\n${profileText}\n\n上記の情報に変更がなければ、確認だけして次に進んでください。`;
+    }
+    preloadProfile();
+  }
   addMessage('user', `書類をアップロードしました: ${fileNames}`);
   chatHistory.push({ role: 'user', content: uploadMsg });
   pendingUploads = [];
