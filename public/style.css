@@ -318,10 +318,17 @@ body {
 .form-essay-body { border: 1px solid var(--border-light); padding: 20px; border-radius: var(--radius-xs); font-size: 0.92rem; line-height: 2; min-height: 300px; }
 
 /* ============ SCROLLBAR ============ */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-soft); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 4px; min-height: 40px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* メッセージエリアのスクロールバーを常時表示 */
+.messages { overflow-y: scroll; scrollbar-gutter: stable; }
+.messages::-webkit-scrollbar { width: 10px; }
+.messages::-webkit-scrollbar-track { background: var(--bg-base); border-left: 1px solid var(--border-light); }
+.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; border: 2px solid var(--bg-base); }
+.messages::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 /* ============ RESPONSIVE ============ */
 @media (max-width: 768px) {
