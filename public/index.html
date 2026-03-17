@@ -162,6 +162,18 @@
               </button>
             </div>
           </div>
+          <!-- プロフィール引き継ぎ確認モーダル -->
+          <div id="profile-modal" class="profile-modal hidden">
+            <div class="profile-modal-content">
+              <h3>前回の情報を引き継ぎますか？</h3>
+              <p class="profile-modal-desc">過去のセッションで入力した情報があります。引き継ぐ項目を選んでください。</p>
+              <div class="profile-checkboxes" id="profile-checkboxes"></div>
+              <div class="profile-modal-actions">
+                <button id="profile-skip-btn" class="btn-secondary">引き継がない</button>
+                <button id="profile-apply-btn" class="btn-glow">選択した情報を引き継いで開始</button>
+              </div>
+            </div>
+          </div>
           <!-- ファイルアップロードゾーン（書類読み込みモード用） -->
           <div id="upload-zone" class="upload-zone hidden">
             <div class="upload-zone-inner">

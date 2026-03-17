@@ -112,8 +112,15 @@ function saveHistory() {
 
 let savedScrollTop = 0; // セッション復元時のスクロール位置
 
-// === Profile Persistence (基本情報の自動保存・復元) ===
-const PROFILE_FIELDS = ['fullname','furigana','birthDate','age','postalCode','address','phone','contactEmail','education','qualifications'];
+// === Profile Persistence (情報の自動保存・復元) ===
+const PROFILE_CATEGORIES = [
+  { id: 'basic', label: '基本情報（氏名・生年月日・住所・連絡先）', fields: ['fullname','furigana','birthDate','age','postalCode','address','phone','contactEmail'], defaultChecked: true },
+  { id: 'education', label: '学歴・資格', fields: ['education','qualifications'], defaultChecked: true },
+  { id: 'careers', label: '職務経歴', fields: ['careers'], defaultChecked: true },
+  { id: 'selfpr', label: '自己PR・性格・趣味', fields: ['selfPR','hobbies','personality','strengths'], defaultChecked: true },
+  { id: 'motivation', label: '志望動機', fields: ['motivation'], defaultChecked: false },
+];
+const ALL_PROFILE_FIELDS = PROFILE_CATEGORIES.flatMap(c => c.fields);
 
 function getProfileKey() { return 'tobira_profile_' + currentEmail; }
 
@@ -122,7 +129,7 @@ function saveProfile() {
   try {
     const profile = JSON.parse(localStorage.getItem(getProfileKey()) || '{}');
     let changed = false;
-    for (const key of PROFILE_FIELDS) {
+    for (const key of ALL_PROFILE_FIELDS) {
       if (collectedData[key] !== undefined && collectedData[key] !== null && collectedData[key] !== '') {
         profile[key] = collectedData[key];
         changed = true;
@@ -143,40 +150,110 @@ function loadProfile() {
   } catch { return null; }
 }
 
-function formatProfileForMessage(profile) {
+function getProfileCategoriesWithData(profile) {
+  return PROFILE_CATEGORIES.filter(cat =>
+    cat.fields.some(f => {
+      const val = profile[f];
+      if (Array.isArray(val)) return val.length > 0;
+      return val !== undefined && val !== null && val !== '';
+    })
+  );
+}
+
+function formatProfileForMessage(profile, selectedFields) {
   const lines = [];
-  if (profile.fullname) lines.push(`氏名: ${profile.fullname}`);
-  if (profile.furigana) lines.push(`ふりがな: ${profile.furigana}`);
-  if (profile.birthDate) lines.push(`生年月日: ${profile.birthDate}`);
-  if (profile.age) lines.push(`年齢: ${profile.age}`);
-  if (profile.postalCode) lines.push(`郵便番号: ${profile.postalCode}`);
-  if (profile.address) lines.push(`住所: ${profile.address}`);
-  if (profile.phone) lines.push(`電話番号: ${profile.phone}`);
-  if (profile.contactEmail) lines.push(`メールアドレス: ${profile.contactEmail}`);
-  if (profile.education && Array.isArray(profile.education) && profile.education.length > 0) {
+  const has = (f) => selectedFields.includes(f) && profile[f];
+  if (has('fullname')) lines.push(`氏名: ${profile.fullname}`);
+  if (has('furigana')) lines.push(`ふりがな: ${profile.furigana}`);
+  if (has('birthDate')) lines.push(`生年月日: ${profile.birthDate}`);
+  if (has('age')) lines.push(`年齢: ${profile.age}`);
+  if (has('postalCode')) lines.push(`郵便番号: ${profile.postalCode}`);
+  if (has('address')) lines.push(`住所: ${profile.address}`);
+  if (has('phone')) lines.push(`電話番号: ${profile.phone}`);
+  if (has('contactEmail')) lines.push(`メールアドレス: ${profile.contactEmail}`);
+  if (selectedFields.includes('education') && Array.isArray(profile.education) && profile.education.length > 0) {
     lines.push(`学歴:`);
-    profile.education.forEach(e => {
-      lines.push(`  - ${e.school || ''} ${e.period || ''} ${e.status || ''}`);
-    });
+    profile.education.forEach(e => lines.push(`  - ${e.school || ''} ${e.period || ''} ${e.status || ''}`));
   }
-  if (profile.qualifications && Array.isArray(profile.qualifications) && profile.qualifications.length > 0) {
+  if (selectedFields.includes('qualifications') && Array.isArray(profile.qualifications) && profile.qualifications.length > 0) {
     lines.push(`資格:`);
-    profile.qualifications.forEach(q => {
-      lines.push(`  - ${q.name || ''} ${q.date || ''} ${q.status || ''}`);
-    });
+    profile.qualifications.forEach(q => lines.push(`  - ${q.name || ''} ${q.date || ''} ${q.status || ''}`));
   }
+  if (selectedFields.includes('careers') && Array.isArray(profile.careers) && profile.careers.length > 0) {
+    lines.push(`職務経歴:`);
+    profile.careers.forEach(c => lines.push(`  - ${c.company || ''} ${c.position || ''} ${c.period || ''} ${c.detail || ''}`));
+  }
+  if (has('motivation')) lines.push(`志望動機: ${profile.motivation}`);
+  if (has('selfPR')) lines.push(`自己PR: ${profile.selfPR}`);
+  if (has('personality')) lines.push(`自覚している性格: ${profile.personality}`);
+  if (has('hobbies')) lines.push(`趣味・特技: ${profile.hobbies}`);
+  if (has('strengths')) lines.push(`強み: ${profile.strengths}`);
   return lines.length > 0 ? lines.join('\n') : null;
 }
 
-function preloadProfile() {
-  const profile = loadProfile();
-  if (!profile) return;
-  for (const key of PROFILE_FIELDS) {
+function preloadProfileFields(profile, selectedFields) {
+  for (const key of selectedFields) {
     if (profile[key] !== undefined && collectedData[key] === undefined) {
       collectedData[key] = profile[key];
     }
   }
 }
+
+// プロフィール引き継ぎモーダル
+let pendingStartMode = null;
+
+function showProfileModal(mode) {
+  const profile = loadProfile();
+  if (!profile) { startSession(mode, []); return; }
+  const availableCategories = getProfileCategoriesWithData(profile);
+  if (availableCategories.length === 0) { startSession(mode, []); return; }
+
+  pendingStartMode = mode;
+  const container = $('#profile-checkboxes');
+  container.innerHTML = '';
+  availableCategories.forEach(cat => {
+    const label = document.createElement('label');
+    label.className = 'profile-checkbox-item';
+    label.innerHTML = `<input type="checkbox" value="${cat.id}" ${cat.defaultChecked ? 'checked' : ''}><span>${cat.label}</span>`;
+    container.appendChild(label);
+  });
+  $('#profile-modal').classList.remove('hidden');
+}
+
+$('#profile-apply-btn').addEventListener('click', () => {
+  const checked = [...$$('#profile-checkboxes input:checked')].map(cb => cb.value);
+  const selectedFields = PROFILE_CATEGORIES.filter(c => checked.includes(c.id)).flatMap(c => c.fields);
+  $('#profile-modal').classList.add('hidden');
+  startSession(pendingStartMode, selectedFields);
+});
+
+$('#profile-skip-btn').addEventListener('click', () => {
+  $('#profile-modal').classList.add('hidden');
+  startSession(pendingStartMode, []);
+});
+
+function startSession(mode, selectedFields) {
+  const profile = loadProfile();
+  currentSessionId = 'session_' + Date.now();
+
+  if (mode === 'scratch') {
+    let msg = `こんにちは。私の名前は${userName}です。応募書類をゼロから作成したいです。`;
+    if (profile && selectedFields.length > 0) {
+      const profileText = formatProfileForMessage(profile, selectedFields);
+      if (profileText) {
+        msg += `\n\n【登録済みの情報】\n${profileText}\n\n上記の情報に変更がなければ、確認だけして次に進んでください。`;
+      }
+      preloadProfileFields(profile, selectedFields);
+    }
+    chatHistory.push({ role: 'user', content: msg });
+    sendToAI();
+  } else if (mode === 'upload') {
+    $('#upload-zone').classList.remove('hidden');
+    pendingProfileFields = selectedFields;
+  }
+}
+
+let pendingProfileFields = [];
 
 function getSessionLabel() {
   // collectedDataから名前+応募先を組み立て
@@ -319,25 +396,12 @@ function resetToWelcome() {
 // === Start Mode Selection ===
 $('#start-scratch').addEventListener('click', () => {
   $('#welcome-banner').classList.add('hidden');
-  currentSessionId = 'session_' + Date.now();
-  let msg = `こんにちは。私の名前は${userName}です。応募書類をゼロから作成したいです。`;
-  const profile = loadProfile();
-  if (profile) {
-    const profileText = formatProfileForMessage(profile);
-    if (profileText) {
-      msg += `\n\n【登録済みの基本情報】\n${profileText}\n\n上記の情報に変更がなければ、確認だけして次に進んでください。`;
-    }
-    preloadProfile();
-  }
-  chatHistory.push({ role: 'user', content: msg });
-  sendToAI();
+  showProfileModal('scratch');
 });
 
 $('#start-upload').addEventListener('click', () => {
   $('#welcome-banner').classList.add('hidden');
-  $('#upload-zone').classList.remove('hidden');
-  currentSessionId = 'session_' + Date.now();
-  pendingUploads = [];
+  showProfileModal('upload');
 });
 
 // === Upload Zone: Back Button ===
@@ -501,13 +565,14 @@ $('#upload-start-btn').addEventListener('click', () => {
     uploadMsg += `【アップロードされた書類: ${f.name}】\n${f.text}\n\n`;
   });
   const profile = loadProfile();
-  if (profile) {
-    const profileText = formatProfileForMessage(profile);
+  if (profile && pendingProfileFields.length > 0) {
+    const profileText = formatProfileForMessage(profile, pendingProfileFields);
     if (profileText) {
-      uploadMsg += `【登録済みの基本情報】\n${profileText}\n\n上記の情報に変更がなければ、確認だけして次に進んでください。`;
+      uploadMsg += `【登録済みの情報】\n${profileText}\n\n上記の情報に変更がなければ、確認だけして次に進んでください。`;
     }
-    preloadProfile();
+    preloadProfileFields(profile, pendingProfileFields);
   }
+  pendingProfileFields = [];
   addMessage('user', `書類をアップロードしました: ${fileNames}`);
   chatHistory.push({ role: 'user', content: uploadMsg });
   pendingUploads = [];
